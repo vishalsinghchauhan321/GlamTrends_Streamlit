@@ -25,230 +25,12 @@ st.set_page_config(
     page_icon="👗",
     layout="wide",
     initial_sidebar_state="expanded",
+    theme="light"
 )
 
-# ── Custom CSS ────────────────────────────────────────────────────────────────
-st.markdown("""
-<style>
-  :root {
-    --primary: #2563eb;
-    --secondary: #1e40af;
-    --light-bg: #ffffff;
-    --text-dark: #1a202c;
-    --text-light: #4a5568;
-  }
-  
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-  
-  /* ─── Sidebar ─── */
-  [data-testid="stSidebar"] { 
-    background: #f8fafc !important;
-    padding-top: 20px !important;
-    border-right: 2px solid #e2e8f0 !important;
-  }
-  [data-testid="stSidebar"] [class*="stMarkdown"] {
-    color: #1a202c !important;
-  }
-  [data-testid="stSidebar"] h1, 
-  [data-testid="stSidebar"] h2, 
-  [data-testid="stSidebar"] h3,
-  [data-testid="stSidebar"] p,
-  [data-testid="stSidebar"] span,
-  [data-testid="stSidebar"] label,
-  [data-testid="stSidebar"] button,
-  [data-testid="stSidebar"] div {
-    color: #1a202c !important;
-  }
-  [data-testid="stSidebar"] .stFileUploader {
-    color: #1a202c !important;
-  }
-  
-  /* ─── Sidebar Footer ─── */
-  .sidebar-footer {
-    color: #1a202c !important;
-    background: #e8f1ff !important;
-    border-radius: 10px;
-    padding: 15px;
-    text-align: center;
-    font-size: 0.8rem;
-    line-height: 1.6;
-    word-wrap: break-word;
-    margin-top: 30px;
-    border: 1px solid #bfdbfe;
-  }
-  .sidebar-footer strong {
-    color: #1e40af !important;
-    font-weight: 600;
-  }
-  .sidebar-footer small {
-    color: #1a202c !important;
-  }
-  
-  /* ─── Main Content ─── */
-  body, .appview-container { 
-    background-color: #f8f9fa !important;
-  }
-  [data-testid="stAppViewContainer"] {
-    background-color: #f8f9fa !important;
-  }
-  
-  /* ─── Metric Cards ─── */
-  .metric-card {
-    background: linear-gradient(135deg, rgba(37, 99, 235, 0.08) 0%, rgba(30, 64, 175, 0.08) 100%);
-    border: 2px solid rgba(37, 99, 235, 0.2);
-    border-radius: 16px;
-    padding: 24px;
-    text-align: center;
-    box-shadow: 0 4px 15px rgba(37, 99, 235, 0.1);
-    transition: all 0.3s ease;
-  }
-  .metric-card:hover {
-    border-color: #2563eb;
-    box-shadow: 0 8px 25px rgba(37, 99, 235, 0.2);
-    transform: translateY(-4px);
-  }
-  .metric-card h2 { 
-    color: #2563eb !important; 
-    margin: 0 0 8px 0; 
-    font-size: 2.5rem; 
-    font-weight: 700;
-    letter-spacing: -1px;
-  }
-  .metric-card p { 
-    color: #4a5568 !important; 
-    margin: 0; 
-    font-size: 0.95rem;
-    font-weight: 500;
-  }
-  
-  /* ─── Headings ─── */
-  h1 { 
-    color: #2563eb !important; 
-    font-size: 2.5rem;
-    font-weight: 700;
-    margin-bottom: 24px;
-    letter-spacing: -1px;
-  }
-  h2 { 
-    color: #2563eb !important; 
-    font-size: 1.75rem;
-    font-weight: 600;
-    margin-top: 24px;
-    margin-bottom: 16px;
-  }
-  h3 { 
-    color: #1e40af !important; 
-    font-size: 1.25rem;
-    font-weight: 600;
-    margin-top: 20px;
-    margin-bottom: 12px;
-  }
-  
-  /* ─── Subheaders ─── */
-  [data-testid="stMarkdownContainer"] h2 {
-    color: #2563eb !important;
-  }
-  [data-testid="stMarkdownContainer"] h3 {
-    color: #1e40af !important;
-  }
-  
-  /* ─── Tabs ─── */
-  .stTabs [data-baseweb="tab"] { 
-    color: #2563eb !important; 
-    font-weight: 600;
-    font-size: 1rem;
-  }
-  .stTabs [aria-selected="true"] { 
-    color: #2563eb !important;
-    border-bottom: 3px solid #2563eb !important;
-  }
-  .stTabs [data-baseweb="tab-list"] {
-    border-bottom: 2px solid rgba(37, 99, 235, 0.2) !important;
-  }
-  
-  /* ─── Info/Alert Boxes ─── */
-  .stAlert {
-    border-radius: 12px !important;
-    border-left: 4px solid #2563eb !important;
-  }
-  
-  /* ─── Buttons ─── */
-  .stButton > button {
-    background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
-    color: #ffffff !important;
-    border: none;
-    border-radius: 8px;
-    font-weight: 600;
-  }
-  .stButton > button:hover {
-    background: linear-gradient(135deg, #1e40af 0%, #2563eb 100%);
-  }
-  
-  /* ─── Input Fields ─── */
-  input, select, textarea {
-    color: #1a202c !important;
-    background-color: #ffffff !important;
-    border: 1px solid #cbd5e1 !important;
-  }
-  input::placeholder, textarea::placeholder {
-    color: #94a3b8 !important;
-  }
-  
-  /* ─── Sidebar Input Fields ─── */
-  [data-testid="stSidebar"] input,
-  [data-testid="stSidebar"] select,
-  [data-testid="stSidebar"] textarea {
-    color: #1a202c !important;
-    background-color: #ffffff !important;
-    border: 2px solid #cbd5e1 !important;
-  }
-  [data-testid="stSidebar"] input::placeholder,
-  [data-testid="stSidebar"] textarea::placeholder {
-    color: #94a3b8 !important;
-  }
-  [data-testid="stSidebar"] input:focus,
-  [data-testid="stSidebar"] select:focus,
-  [data-testid="stSidebar"] textarea:focus {
-    border: 2px solid #2563eb !important;
-    background-color: #ffffff !important;
-    color: #1a202c !important;
-  }
-  
-  /* ─── Data Frame ─── */
-  [data-testid="dataFrameContainer"] {
-    border-radius: 12px !important;
-  }
-  th {
-    background-color: rgba(37, 99, 235, 0.1) !important;
-    color: #2563eb !important;
-    font-weight: 600;
-  }
-  
-  /* ─── Divider ─── */
-  hr { 
-    margin: 24px 0 !important;
-    border: none;
-    border-top: 2px solid rgba(102, 126, 234, 0.2);
-  }
-  
-  /* ─── Text Styling ─── */
-  body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-  p, span, label, div {
-    color: #4a5568 !important;
-  }
-  
-  /* ─── Selectbox & Slider Labels ─── */
-  [data-testid="stSelectbox"] label,
-  [data-testid="stSlider"] label {
-    color: #667eea !important;
-    font-weight: 600;
-  }
-</style>
-""", unsafe_allow_html=True)
-
-PURPLE = "#667eea"
-ACCENT = "#764ba2"
-PALETTE = "RdPu"
+PURPLE = "#1f77b4"
+ACCENT = "#ff7f0e"
+PALETTE = "Set2"
 
 # ── Sidebar ───────────────────────────────────────────────────────────────────
 with st.sidebar:
@@ -259,15 +41,10 @@ with st.sidebar:
     uploaded = st.file_uploader("Select CSV Dataset", type=["csv"])
     st.markdown("---")
     st.markdown("""
-    <hr style='margin: 30px 0; border: none; border-top: 1px solid rgba(255,255,255,0.3);'>
-    """, unsafe_allow_html=True)
-    st.markdown("""
-    <div style='text-align: center; color: #ffffff; font-size: 0.8rem; line-height: 1.6;'>
-        <strong>Brainybeam Info-Tech</strong><br>
-        Internship Project 2024<br>
-        <small style='opacity: 0.9;'>Advanced Analytics Dashboard</small>
-    </div>
-    """, unsafe_allow_html=True)
+    **Brainybeam Info-Tech**  
+    Internship Project 2024  
+    Advanced Analytics Dashboard
+    """)
 
 # ── Data Loading ──────────────────────────────────────────────────────────────
 @st.cache_data
@@ -289,10 +66,10 @@ def load_data(file):
 
 # ── Main ───────────────────────────────────────────────────────────────────────
 st.markdown("# 👗 GlamTrends — Women's Clothing Analytics")
-st.markdown("<p style='font-size: 1.1rem; color: #666; margin-bottom: 24px;'>Comprehensive E-Commerce Review Analysis & Predictive Insights</p>", unsafe_allow_html=True)
+st.markdown("Comprehensive E-Commerce Review Analysis & Predictive Insights")
 
 if uploaded is None:
-    st.info("� **Upload Dataset** — Select the Women's E-Commerce Reviews CSV file from the sidebar to begin analysis.")
+    st.info("📥 **Upload Dataset** — Select the Women's E-Commerce Reviews CSV file from the sidebar to begin analysis.")
     st.markdown("""
     ### 📥 Get Started
     1. Download the dataset from [Kaggle](https://www.kaggle.com/datasets/nicapotato/womens-ecommerce-clothing-reviews)
@@ -320,7 +97,7 @@ with tabs[0]:
         ("Departments",   str(df['Department_Name'].nunique())),
     ]
     for col, (label, val) in zip([c1,c2,c3,c4], metrics):
-        col.markdown(f'<div class="metric-card"><h2>{val}</h2><p>{label}</p></div>', unsafe_allow_html=True)
+        col.metric(label, val)
 
     st.markdown("---")
     st.subheader("📋 Raw Data Preview")
@@ -610,8 +387,7 @@ with tabs[4]:
     items = list(summary_data.items())
     for i, (k, v) in enumerate(items):
         col = col1 if i % 2 == 0 else col2
-        col.markdown(f'<div class="metric-card" style="margin-bottom:12px"><h2>{v}</h2><p>{k}</p></div>',
-                     unsafe_allow_html=True)
+        col.metric(k, v)
 
     st.markdown("---")
     st.markdown("### 💡 Key Insights & Findings")
