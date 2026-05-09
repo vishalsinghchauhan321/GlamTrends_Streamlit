@@ -25,7 +25,6 @@ st.set_page_config(
     page_icon="👗",
     layout="wide",
     initial_sidebar_state="expanded",
-    theme="light"
 )
 
 PURPLE = "#1f77b4"
