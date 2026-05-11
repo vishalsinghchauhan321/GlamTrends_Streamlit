@@ -1,3 +1,4 @@
+import io
 import streamlit as st
 import pandas as pd
 import numpy as np
@@ -63,6 +64,52 @@ def load_data(file):
     df["High_Engagement"] = (df["Positive_Feedback_Count"] > df["Positive_Feedback_Count"].median()).astype(int)
     return df
 
+@st.cache_data
+def prepare_sample_bytes(df, fmt="CSV"):
+    sample_df = df.head(10).copy()
+    if fmt == "JSON":
+        return sample_df.to_json(orient="records", lines=True).encode("utf-8")
+    return sample_df.to_csv(index=False).encode("utf-8")
+
+@st.cache_data
+def load_scan_file(uploaded_file):
+    name = getattr(uploaded_file, "name", "").lower()
+    if name.endswith(".csv"):
+        return pd.read_csv(uploaded_file)
+    if name.endswith(".xlsx"):
+        return pd.read_excel(uploaded_file)
+    if name.endswith(".json"):
+        return pd.read_json(uploaded_file, lines=True)
+    if name.endswith(".parquet"):
+        return pd.read_parquet(uploaded_file)
+    if name.endswith(".feather"):
+        return pd.read_feather(uploaded_file)
+    raise ValueError("Unsupported file format")
+
+def scan_bulk_dataset(df):
+    scan = df.copy()
+    scan["Missing_Count"] = scan.isna().sum(axis=1)
+    scan["Duplicate_Record"] = scan.duplicated(keep=False)
+    scan["Scan_Status"] = "OK"
+    scan.loc[scan["Missing_Count"] > 0, "Scan_Status"] = "Missing Data"
+    scan.loc[scan["Duplicate_Record"], "Scan_Status"] = "Duplicate"
+
+    if "Rating" in scan.columns:
+        scan["Review_Sentiment"] = scan["Rating"].apply(
+            lambda r: "Positive" if r >= 4 else ("Neutral" if r == 3 else "Negative")
+        )
+    if "Review_Text" in scan.columns:
+        scan["Has_Review"] = scan["Review_Text"].astype(str).str.strip().ne("")
+    if "Recommended_IND" in scan.columns and "Rating" in scan.columns:
+        scan["Potential_Issue"] = (
+            ((scan["Rating"] <= 2) & (scan["Recommended_IND"] == 1)) |
+            ((scan["Rating"] >= 4) & (scan["Recommended_IND"] == 0))
+        )
+        scan["Issue_Type"] = np.where(
+            scan["Potential_Issue"], "Recommendation mismatch", ""
+        )
+    return scan
+
 # ── Main ───────────────────────────────────────────────────────────────────────
 st.markdown("# 👗 GlamTrends — Women's Clothing Analytics")
 st.markdown("Comprehensive E-Commerce Review Analysis & Predictive Insights")
@@ -80,7 +127,7 @@ if uploaded is None:
 df = load_data(uploaded)
 
 # ── Tabs ───────────────────────────────────────────────────────────────────────
-tabs = st.tabs(["📊 Overview", "📈 EDA", "🤖 ML Models", "💬 NLP", "🏆 Summary"])
+tabs = st.tabs(["📊 Overview", "🧪 Bulk Scanner", "📈 EDA", "🤖 ML Models", "💬 NLP", "🏆 Summary"])
 
 # ════════════════════════════════════════════════════════════════
 # TAB 1 — OVERVIEW
@@ -113,9 +160,91 @@ with tabs[0]:
     st.dataframe(info_df, use_container_width=True)
 
 # ════════════════════════════════════════════════════════════════
-# TAB 2 — EDA
+# TAB 2 — BULK SCANNER
 # ════════════════════════════════════════════════════════════════
 with tabs[1]:
+    st.subheader("🧪 Bulk Scanner")
+    st.markdown("Upload a dataset to run a quick bulk scan, detect issues, and download a scanned report.")
+
+    sample_format = st.selectbox("Sample Format", ["CSV", "JSON"], index=0, key="sample_format")
+    download_col, upload_col, result_col = st.columns([1.5, 2, 1.3])
+
+    with download_col:
+        st.markdown("**Download Sample File**")
+        st.caption("Use a template to format your bulk file for scanning.")
+        sample_bytes = prepare_sample_bytes(df, fmt=sample_format)
+        st.download_button(
+            label="Download Sample",
+            data=sample_bytes,
+            file_name=f"glamtrends_sample.{sample_format.lower()}",
+            mime="text/csv" if sample_format == "CSV" else "application/json",
+        )
+
+    with upload_col:
+        st.markdown("**Upload File to Scan**")
+        st.caption("Supported: CSV, XLSX, JSON, PARQUET, FEATHER.")
+        uploaded_scan = st.file_uploader(
+            "Drag and drop file here or browse",
+            type=["csv", "xlsx", "json", "parquet", "feather"],
+            key="bulk_scanner_uploader",
+        )
+
+    scanned_bytes = None
+    scanned_df = None
+    scan_summary = None
+    download_disabled = True
+
+    if uploaded_scan is not None:
+        try:
+            scanned_df = load_scan_file(uploaded_scan)
+            scan_df = scan_bulk_dataset(scanned_df)
+            scan_summary = {
+                "Rows": len(scan_df),
+                "Columns": len(scan_df.columns),
+                "Missing Rows": int((scan_df["Missing_Count"] > 0).sum()),
+                "Duplicate Rows": int(scan_df["Duplicate_Record"].sum()),
+                "Flagged Issues": int(scan_df["Potential_Issue"].sum()) if "Potential_Issue" in scan_df.columns else 0,
+            }
+            scanned_bytes = scan_df.to_csv(index=False).encode("utf-8")
+            download_disabled = False
+        except Exception as e:
+            st.error(f"Failed to scan file: {e}")
+
+    with result_col:
+        st.markdown("**Download Scanned File**")
+        st.caption("Download a cleaned scan report once scanning completes.")
+        if download_disabled:
+            st.button("Download Scanned File", disabled=True)
+        else:
+            st.download_button(
+                label="Download Scanned File",
+                data=scanned_bytes,
+                file_name="scanned_bulk_report.csv",
+                mime="text/csv",
+            )
+
+    st.markdown("---")
+    if scanned_df is not None and scan_summary is not None:
+        summary_cols = st.columns(5)
+        for col, (label, value) in zip(summary_cols, scan_summary.items()):
+            col.metric(label, value)
+
+        st.markdown("### Scan Overview")
+        st.dataframe(pd.DataFrame.from_dict(scan_summary, orient="index", columns=["Value"]), use_container_width=True)
+
+        st.markdown("### Top 15 Scanned Rows")
+        st.dataframe(scan_df.head(15), use_container_width=True)
+
+        if "Issue_Type" in scan_df.columns:
+            issue_counts = scan_df[scan_df["Potential_Issue"]]["Issue_Type"].value_counts()
+            if not issue_counts.empty:
+                st.markdown("### Flagged Issues")
+                st.bar_chart(issue_counts)
+
+# ════════════════════════════════════════════════════════════════
+# TAB 3 — EDA
+# ════════════════════════════════════════════════════════
+with tabs[2]:
     st.subheader("📈 Exploratory Data Analysis")
     st.markdown("Interactive visualizations to uncover patterns and trends")
     
