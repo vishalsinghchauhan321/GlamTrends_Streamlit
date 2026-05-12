@@ -65,8 +65,22 @@ def load_data(file):
     return df
 
 @st.cache_data
-def prepare_sample_bytes(df, fmt="CSV"):
-    sample_df = df.head(10).copy()
+def prepare_sample_bytes(df=None, fmt="CSV"):
+    if df is None:
+        sample_df = pd.DataFrame({
+            "Clothing_ID": [1001, 1002],
+            "Age": [25, 32],
+            "Title": ["Great top", "Nice dress"],
+            "Review Text": ["Loved it, very comfortable.", "Good fit, but color faded."],
+            "Rating": [5, 3],
+            "Recommended IND": [1, 0],
+            "Positive Feedback Count": [15, 3],
+            "Division Name": ["General", "General"],
+            "Department Name": ["Tops", "Bottoms"],
+            "Class Name": ["Shirts", "Dresses"],
+        })
+    else:
+        sample_df = df.head(10).copy()
     if fmt == "JSON":
         return sample_df.to_json(orient="records", lines=True).encode("utf-8")
     return sample_df.to_csv(index=False).encode("utf-8")
@@ -168,17 +182,14 @@ with tabs[1]:
 
     with download_col:
         st.markdown("**Download Sample File**")
-        st.caption("Use a template to format your bulk file for scanning.")
-        if df is not None:
-            sample_bytes = prepare_sample_bytes(df, fmt=sample_format)
-            st.download_button(
-                label="Download Sample",
-                data=sample_bytes,
-                file_name=f"glamtrends_sample.{sample_format.lower()}",
-                mime="text/csv" if sample_format == "CSV" else "application/json",
-            )
-        else:
-            st.info("Upload a dataset above to download a sample file.")
+        st.caption("No upload required — download a sample file template here and upload any supported dataset for scanning.")
+        sample_bytes = prepare_sample_bytes(df, fmt=sample_format)
+        st.download_button(
+            label="Download Sample",
+            data=sample_bytes,
+            file_name=f"glamtrends_sample.{sample_format.lower()}",
+            mime="text/csv" if sample_format == "CSV" else "application/json",
+        )
 
     with upload_col:
         st.markdown("**Upload File to Scan**")
